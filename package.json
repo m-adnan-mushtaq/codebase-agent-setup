@@ -1,10 +1,10 @@
 {
   "name": "codebase-agent-setup",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Set up Graft, Ponytail and JS/TS code intelligence for Claude Code",
   "type": "module",
   "bin": { "codebase-agent-setup": "setup.mjs" },
-  "files": ["setup.mjs", "README.md"],
+  "files": ["setup.mjs", "README.md", "vendor/ponytail"],
   "engines": { "node": ">=22.3.0" },
   "scripts": { "test": "node --test test/setup.test.mjs" },
   "license": "MIT"

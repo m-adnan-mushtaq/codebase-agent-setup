@@ -14,7 +14,7 @@ Replace the path with the downloaded script's location (quote paths containing s
 
 ## Public one command setup
 
-After publishing this directory at **m-adnan-mushtaq/codebase-agent-setup**, run this from your application's Git repository root:
+Run this from your application's Git repository root:
 
 ```sh
 npx --yes github:m-adnan-mushtaq/codebase-agent-setup
@@ -26,7 +26,7 @@ On Windows PowerShell, use `npx.cmd` if PowerShell blocks `npx.ps1`:
 npx.cmd --yes github:m-adnan-mushtaq/codebase-agent-setup
 ```
 
-The GitHub command becomes usable after that public repository exists. This download runs the public repository's setup code. Review `setup.mjs` before use. For a fixed release, append `#v1.0.0` after creating that Git tag.
+This download runs the public repository's setup code. Review `setup.mjs` before use. For a fixed release, append `#v1.0.0` after creating that Git tag.
 
 ## Prerequisites
 
@@ -44,7 +44,7 @@ The installer stops if a prerequisite or install command fails. It does not inst
 3. Install pinned Graft 0.28.0, typescript-language-server 5.1.3, and TypeScript 5.9.3 globally. This can change existing global versions.
 4. Register the official Claude marketplace and Ponytail marketplace, then install both plugins at project scope. Marketplace registration is stored in your user configuration; plugins are enabled in project settings. Marketplace plugin versions follow their upstream releases.
 5. Run `graft init --agents claude --no-global --no-build`, followed by `graft build`. This uses the local structural pass, without `--deep` or an API key.
-6. Pin Graft's generated MCP entry to 0.28.0 and add a marked navigation section to `CLAUDE.md`. Existing content is retained; changes made by this installer are backed up in `.agent-setup-backups/`. Graft and Claude manage their own integration files and settings merges.
+6. Copy the bundled, unchanged upstream Ponytail `SKILL.md` and MIT license into `.claude/skills/ponytail/`, pin Graft's generated MCP entry to 0.28.0, and add a marked navigation section to `CLAUDE.md`. Existing content is retained; changes made by this installer are backed up in `.agent-setup-backups/`. Graft and Claude manage their own integration files and settings merges.
 7. Create a conservative `jsconfig.json` only for JavaScript projects with neither a JS nor TS config. Existing JSONC configs and aliases stay intact. New JS configs use `checkJs:false`; use `// @ts-check` in selected files or opt into `checkJs:true` after reviewing errors.
 8. Print tool versions, installed plugins, and graph counts. Restart Claude Code, check `/plugin`, ask for a known function definition, and run `/ponytail`.
 
@@ -64,20 +64,11 @@ node setup.mjs --help
 
 `--dry-run` checks installed prerequisites and prints the plan without writing configuration or installing packages. `--language` is required in a non-interactive shell. Setup is repeatable: managed instructions are replaced in place and existing JS/TS configs are preserved. Completed package/plugin installations remain if a later step fails; fix that step and rerun.
 
-## Publish on GitHub
+## Bundled Ponytail skill
 
-Create an empty public repository named `codebase-agent-setup` under `m-adnan-mushtaq`. Upload **only this directory's contents**, not the blog, recordings, work directory, or an application's generated graph.
+The plugin installation enables Ponytail's upstream integration. The installer also copies its skill into the project so it is visible at `.claude/skills/ponytail/SKILL.md`, alongside Graft's skill. The source is included in `vendor/ponytail/` so GitHub installs include the actual file.
 
-With GitHub CLI installed and signed in, from this directory:
-
-```sh
-git init -b main
-git add package.json setup.mjs README.md LICENSE .gitignore test
-git commit -m "Add one command Claude Code navigation setup"
-gh repo create m-adnan-mushtaq/codebase-agent-setup --public --source . --remote origin --push
-```
-
-Alternatively create the repository in GitHub's website and follow its existing-repository push instructions. Before linking it in the blog, try the public `npx` command in a disposable TS repository and a JS repository. Confirm `/plugin`, navigation and Ponytail in a restarted, authenticated Claude Code session.
+`SKILL.md` and `LICENSE` are byte-for-byte upstream copies from [DietrichGebert/ponytail at commit 96608e0](https://github.com/DietrichGebert/ponytail/tree/96608e078b2d5ea607c5c3b8b5a54d1c1fba6846). `PROVENANCE.json` records the revision and SHA-256. The MIT license and original attribution are retained. Existing local skill content is backed up before replacement; identical copies are left unchanged on reruns. The local snapshot provides the explicit `/ponytail` skill; the installed plugin provides its upstream hooks and additional capabilities.
 
 ## Validation
 
@@ -85,7 +76,7 @@ Alternatively create the repository in GitHub's website and follow its existing-
 npm test
 ```
 
-Eight tests cover preservation of existing instructions and JSONC, repeat runs, malformed markers, JavaScript defaults, dry runs, command failure handling, graph-count reporting, and MCP version pinning. They simulate package/plugin commands; they do not prove live Claude authentication or plugin activation. Separate Windows smoke checks ran real Graft init/build twice on both TypeScript and JavaScript fixtures, verified generated configuration, and checked the language-server executable. Claude plugin calls were simulated because the Claude CLI was unavailable in the validation environment.
+Ten tests cover preservation of existing instructions and JSONC, repeat runs, malformed markers, JavaScript defaults, dry runs, command failure handling, graph-count reporting, MCP version pinning, exact Ponytail file copying, and preservation of an existing local skill. They simulate package/plugin commands; they do not prove live Claude authentication or plugin activation. Separate Windows smoke checks ran real Graft init/build twice on both TypeScript and JavaScript fixtures, verified generated configuration, and checked the language-server executable. Claude plugin calls were simulated because the Claude CLI was unavailable in the validation environment.
 
 ## Sources
 

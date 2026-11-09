@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { configureProject, parseArgs, setup } from '../setup.mjs';
+import { configureProject, parseArgs, setup, copyPonytailSkill } from '../setup.mjs';
 
 const fixture = () => mkdtempSync(join(tmpdir(), 'agent-setup-test-'));
 test('preserves existing instructions and JSONC config across reruns', () => {
@@ -85,4 +85,22 @@ test('pins the generated Graft MCP server while preserving other servers', () =>
   assert.deepEqual(configured.mcpServers.other,other);
   assert.deepEqual(configured.mcpServers.graft.args,['-y','@nanonets/graft@0.28.0','mcp']);
   assert.deepEqual(configureProject(root,'typescript'),[]);
+});
+
+test('copies upstream Ponytail skill bytes and license without rewriting them', () => {
+  const root=fixture();
+  copyPonytailSkill(root);
+  for(const name of ['SKILL.md','LICENSE']) {
+    assert.deepEqual(readFileSync(join(root,'.claude','skills','ponytail',name)),readFileSync(new URL(`../vendor/ponytail/${name}`,import.meta.url)));
+  }
+  assert.deepEqual(copyPonytailSkill(root),[]);
+});
+test('backs up an existing Ponytail skill before installing the bundled copy', () => {
+  const root=fixture();
+  mkdirSync(join(root,'.claude','skills','ponytail'),{recursive:true});
+  writeFileSync(join(root,'.claude','skills','ponytail','SKILL.md'),'Existing personal instructions');
+  copyPonytailSkill(root);
+  const saved=readdirSync(join(root,'.agent-setup-backups')).find(x=>x.startsWith('ponytail-SKILL.md'));
+  assert.ok(saved);
+  assert.equal(readFileSync(join(root,'.agent-setup-backups',saved),'utf8'),'Existing personal instructions');
 });

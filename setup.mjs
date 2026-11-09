@@ -6,6 +6,24 @@ import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline/promises';
 
 export const versions = { graft: '0.28.0', typescript: '5.9.3', server: '5.1.3' };
+export function copyPonytailSkill(root) {
+  const changed = [];
+  const folder = join(root, '.claude', 'skills', 'ponytail');
+  for (const file of ['SKILL.md', 'LICENSE']) {
+    const original = readFileSync(fileURLToPath(new URL(`./vendor/ponytail/${file}`, import.meta.url)));
+    const target = join(folder, file);
+    if (existsSync(target)) {
+      if (readFileSync(target).equals(original)) continue;
+      const backup = join(root, '.agent-setup-backups');
+      mkdirSync(backup, { recursive: true });
+      copyFileSync(target, join(backup, `ponytail-${file}.${Date.now()}.bak`));
+    }
+    mkdirSync(folder, { recursive: true });
+    writeFileSync(target, original);
+    changed.push(`.claude/skills/ponytail/${file}`);
+  }
+  return changed;
+}
 export function run(command, args, { cwd, capture = false, env = process.env } = {}) {
   // Windows .cmd launchers need cmd.exe. Accept only plain arguments here:
   // no shell metacharacters, expansions or paths containing spaces.
@@ -82,6 +100,7 @@ export function configureProject(root, language) {
       save('.mcp.json', JSON.stringify(mcp, null, 2) + '\n');
     }
   }
+  changed.push(...copyPonytailSkill(root));
   return changed;
 }
 export function setup(options, execute = run, log = console.log) {
@@ -109,7 +128,7 @@ export function setup(options, execute = run, log = console.log) {
   ];
   if (options.dryRun) {
     plan.forEach(([command, args]) => log(`> ${command} ${args.join(' ')}`));
-    log('Would add a managed CLAUDE.md section, back up changed files, and create jsconfig.json for unconfigured JavaScript projects. No writes or installations performed.');
+    log('Would copy the bundled Ponytail skill and license into .claude/skills/ponytail, add a managed CLAUDE.md section, back up changed files, and create jsconfig.json for unconfigured JavaScript projects. No writes or installations performed.');
     return;
   }
   invoke(...plan[0]);
